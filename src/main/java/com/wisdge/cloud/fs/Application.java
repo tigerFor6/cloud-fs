@@ -23,7 +23,7 @@ import java.util.concurrent.CountDownLatch;
 @SpringBootApplication
 @EnableDiscoveryClient
 @EnableFeignClients
-@ComponentScan(basePackages = { "com.wisdge.cloud"} )
+@ComponentScan(basePackages = {"com.wisdge.cloud"})
 @MapperScan({"com.wisdge.cloud"})
 @EnableSwagger2
 public class Application implements CommandLineRunner, DisposableBean {
@@ -51,7 +51,7 @@ public class Application implements CommandLineRunner, DisposableBean {
 
         Map<String, IFileStorageClient> fileStorageClientMap = fileStorage.getFileStorages();
         Iterator<String> iter = fileStorageClientMap.keySet().iterator();
-        while(iter.hasNext()) {
+        while (iter.hasNext()) {
             String key = iter.next();
             IFileStorageClient client = fileStorageClientMap.get(key);
             client.destroy();

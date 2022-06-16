@@ -7,6 +7,7 @@ import com.wisdge.dataservice.utils.JSonUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.slf4j.MDC;
 import org.springframework.stereotype.Component;
+
 import javax.servlet.*;
 import javax.servlet.annotation.WebFilter;
 import javax.servlet.http.HttpServletRequest;
@@ -22,7 +23,7 @@ import java.util.Map;
 @WebFilter(urlPatterns = {"/*"}, filterName = "jwtFilter")
 public class JwtFilter implements Filter {
     //这里配置不过滤的路径，支持模糊查询
-    private static final String NOT_FILTER_STR = "/swagger|/v2|/v3|/get|/error";
+    private static final String NOT_FILTER_STR = "/swagger|/v2|/v3|/get|/error|/upload";
     private static List<String> NOT_FILTER_ARRAY;
 
     public JwtFilter() {

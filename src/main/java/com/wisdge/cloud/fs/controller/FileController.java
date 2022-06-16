@@ -63,7 +63,7 @@ public class FileController extends BaseController {
     private UploadHistoryMapper uploadHistoryMapper;
 
     private long expireSeconds = 600;// 默认600秒超时
-    private long maxLoadSize = 30 * 1024 * 1024;// 最大允许直接加载30M的文件
+    private long maxLoadSize = 100 * 1024 * 1024;// 最大允许直接加载100M的文件
 
     private boolean isLocked() {
         UploadLocker uploadLocker = config.getUploadLocker();
@@ -92,17 +92,17 @@ public class FileController extends BaseController {
     @PostMapping("/upload")
     @ResponseBody
     public ApiResult upload(HttpServletRequest request) throws IOException {
-        if (isLocked()) {
-            String exceptionMessage = i18n(FS_UPLOAD_LIMIT);
-            UploadHistory history = new UploadHistory();
-            history.setId(newId());
-            history.setStatus(-2);
-            history.setException(exceptionMessage);
-            history.setCreateBy(getLoginUser().getId());
-            history.setCreateTime(new Date());
-            uploadHistoryMapper.insert(history);
-            return ApiResult.fail(exceptionMessage);
-        }
+//        if (isLocked()) {
+//            String exceptionMessage = i18n(FS_UPLOAD_LIMIT);
+//            UploadHistory history = new UploadHistory();
+//            history.setId(newId());
+//            history.setStatus(-2);
+//            history.setException(exceptionMessage);
+//            history.setCreateBy(getLoginUser().getId());
+//            history.setCreateTime(new Date());
+//            uploadHistoryMapper.insert(history);
+//            return ApiResult.fail(exceptionMessage);
+//        }
 
         MultipartHttpServletRequest mr = CommonsMultipartResolverEx.getMultipartHttpServletRequest(request);
         String fsKey = WebUtils.getString(request, "key", Constant.FIELD_DEFAULT);
@@ -173,7 +173,8 @@ public class FileController extends BaseController {
             Result result = fileStorage.saveStream(fsKey, uploadPath, original, filename, inputStream, size, (current,total)->{});
             UploadHistory history = new UploadHistory();
             history.setId(newId());
-            history.setCreateBy(getLoginUser().getId());
+            LoginUser loginUser = getLoginUser();
+            history.setCreateBy(loginUser == null ? null : getLoginUser().getId());
             history.setCreateTime(new Date());
             if (result.getCode() < 0) {
                 history.setStatus(-1);
@@ -194,6 +195,9 @@ public class FileController extends BaseController {
             }
             messages.add(result.getMessage());
             values.add(result.getValue());
+            if (inputStream != null){
+                inputStream.close();
+            }
         }
         return ApiResult.ok(new JSONArray(Collections.singletonList(messages)).toString(), values);
     }
@@ -309,7 +313,7 @@ public class FileController extends BaseController {
         Boolean download = WebUtils.getBoolean(request, "d");
         String filepath = WebUtils.getString(request, "file", "");
         String asName = WebUtils.getString(request, "as", "");
-        if (StringUtils.isEmpty(filepath)) {
+        if (StringUtils.isEmpty(filepath) || "undefined".equals(filepath)) {
             return error(i18n(FS_ILLEGALFILEPATH), HttpStatus.NOT_ACCEPTABLE);
         }
 
@@ -332,9 +336,9 @@ public class FileController extends BaseController {
             String filename = StringUtils.isEmpty(asName) ? FilenameUtils.getName(filepath) : asName;
 //			String contentType = download ? "application/octet-stream" : WebUtils.getContentType(FilenameUtils.getExtension(filename));
             fileStorage.retrieveStream(fsKey, filepath, (is, metadata) -> {
-                log.debug(metadata.getDownloadURL());
                 if (StringUtils.isNotEmpty(metadata.getDownloadURL())) {
                     try {
+                        metadata.setDownloadURL(metadata.getDownloadURL().replace("http","https"));
                         response.sendRedirect(metadata.getDownloadURL());// 直接通过文件下载地址重定向下载
                     } catch (IOException e) {
                         log.error(e.getMessage(), e);
@@ -354,6 +358,9 @@ public class FileController extends BaseController {
                                 .with(request)
                                 .with(response)
                                 .serveResource();
+                        if (is != null){
+                            is.close();
+                        }
                     }
                 } catch (Exception e) {
                     log.error("IO Error", e);
