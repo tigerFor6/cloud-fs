@@ -1,0 +1,29 @@
+<!doctype html>
+
+<!--注意：引入thymeleaf的名称空间-->
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+          content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Welcome</title>
+    <style css="text/style">
+        html, body {
+            height: 100%
+        }
+        .title {
+            font-size: 38pt;
+            text-shadow: 3px 3px 8px rgb(0 0 0 / 50%);
+            color: grey;
+            font-family: sans-serif;
+        }
+    </style>
+</head>
+<body>
+    <div style="margin: auto; text-align: center">
+        <p class="title">Welcome to Cloud.FileService</p>
+        <a th:href="@{/swagger-ui/index.html}">前往API文档</a>
+    </div>
+</body>
+</html>
